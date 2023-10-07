@@ -16,9 +16,50 @@
       <div id = "map" style = "width: 100%; height: 500px"></div>
       <script src="heatmap.min.js"></script>
       <script src="leaflet-heatmap.js"></script>
+      <br>
+
+      <table style="width: 20%" border="5"> 
+          <form> 
+              <tr> 
+                  <th align= "center"  rowspan="2">
+                      <label for="date"> 
+                          Date
+                      </label>
+                  </th>
+                  <td><input type="date" id="date"/>
+                  </td> 
+              </tr>
+          </form>
+          <tr>
+            <button onclick="sub()">Incencio por fecha</button>
+          </tr>
+       </table>
+
+
 
          <script>
         
+        function sub(){
+            let fecha = document.getElementById("date").value;
+            console.log(fecha);
+
+            $.ajax({
+        
+        type: "GET",
+        url: "https://firms.modaps.eosdis.nasa.gov/api/area/csv/24c96f94abe851d04a1e27f1a0e87993/MODIS_SP/world/1/"+fecha,
+            success: function (data) {
+                console.log(data);
+                array = Papa.parse(data);
+                array.data.shift()
+                testData = {
+                    data: array.data.map(([lat, lng, count,,,,,,,confid]) => ({lat, lng, count, confid}))
+                    .filter(item => item.confid > 90)
+                }
+                console.log(testData.data);
+                heatmapLayer.setData(testData);                
+            }
+        });
+        }
         // don't forget to include leaflet-heatmap.js
         // var testData = {
         
@@ -63,56 +104,22 @@
         });
 
         $.ajax({
+        
         type: "GET",
-        url: "http://localhost:3000/datos.csv",
+        url: "https://firms.modaps.eosdis.nasa.gov/api/area/csv/24c96f94abe851d04a1e27f1a0e87993/MODIS_SP/world/1/2022-10-07",
             success: function (data) {
+                console.log(data);
                 array = Papa.parse(data);
                 array.data.shift()
                 testData = {
-                    data: array.data.map(([,lat, lng, count]) => ({lat, lng, count:count}))
+                    data: array.data.map(([lat, lng, count,,,,,,,confid]) => ({lat, lng, count, confid}))
+                    .filter(item => item.confid > 90)
                 }
-
+                console.log(testData.data);
                 heatmapLayer.setData(testData);                
             }
         });
-
-        </script>
-        <br>
-
-        <table style="width: 20%" border="5"  "> 
-            <form> 
-                <tr> 
-                    <th > 
-                        <label for="country"> 
-                                Country
-                    </label> 
-                    </th> 
-                    <td> <input type="text" id="country" /> 
-                    </td> 
-                </tr> 
-                <tr> 
-                    <th align= "center"  rowspan="2"><label for="date"> 
-                            Date
-                        </label>
-                    </th>
-
-                    <td><input type="date" id="date" /> 
-                    </td> 
-                </tr>
-            </form> 
-         </table> 
-
-
-         <script>
-            let key= '36dece4845148d3731444a9566f6e845';
-            function enviarAlerta(){
-                let dato= 'https://firms.modaps.eosdis.nasa.gov/api/country/csv/$key$'
-            }
-
-         </script>
-
-
-    
+        </script>  
    </body>
    
 </html>
